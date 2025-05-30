@@ -17,6 +17,7 @@ limitations under the License.
 package controllertest
 
 import (
+	"context"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -104,9 +105,19 @@ func (f *FakeInformer) AddEventHandler(handler cache.ResourceEventHandler) (cach
 	return nil, nil
 }
 
+// AddEventHandlerWithOptions implements the Informer interface.  Adds an EventHandler with options to the fake Informers. TODO(phisco): handle options.
+func (f *FakeInformer) AddEventHandlerWithOptions(handler cache.ResourceEventHandler, options cache.HandlerOptions) (cache.ResourceEventHandlerRegistration, error) {
+	f.handlers = append(f.handlers, eventHandlerWrapper{handler})
+	return nil, nil
+}
+
 // Run implements the Informer interface.  Increments f.RunCount.
 func (f *FakeInformer) Run(<-chan struct{}) {
 	f.RunCount++
+}
+
+func (f *FakeInformer) RunWithContext(ctx context.Context) {
+	f.RunCount++ // Increment RunCount even when using context
 }
 
 // Add fakes an Add event for obj.
@@ -157,6 +168,11 @@ func (f *FakeInformer) LastSyncResourceVersion() string {
 
 // SetWatchErrorHandler does nothing.  TODO(community): Implement this.
 func (f *FakeInformer) SetWatchErrorHandler(cache.WatchErrorHandler) error {
+	return nil
+}
+
+// SetWatchErrorHandlerWithContext does nothing.  TODO(community): Implement this.
+func (f *FakeInformer) SetWatchErrorHandlerWithContext(handler cache.WatchErrorHandlerWithContext) error {
 	return nil
 }
 
